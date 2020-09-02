@@ -83,10 +83,10 @@ void call_fini_array() {
 
 // reset handler
 void RESET_handler() {
-    copy_data();
-    zero_bss();
-    fill_heap();
-    call_init_array();
+//    copy_data();
+//    zero_bss();
+//    fill_heap();
+//    call_init_array();
     // run application
     main_app();
     // call destructors for static instances

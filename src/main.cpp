@@ -7,8 +7,6 @@ static volatile unsigned &GPIOA_BSRR = *reinterpret_cast<unsigned *>(0x48000018)
 
 // application
 void main_app() {
-    RCC_AHB1 |= 0x00020000;  // enable clock for GPIOA
-    GPIOA_MODER |= 0x40000000;  // set output on GPIOA.P15
     // double x = 0.0;
     // double y = 0.0;
     while (true) {

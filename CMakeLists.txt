@@ -1,19 +1,25 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15)
 
 # project name
 project(baremetal)
+
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
 
 # select linker script
 set(LINKER_SCRIPT "ld/stm32f031x6.ld")
 
 # define CPU OPTIONS
-set(CPU_OPTIONS -mthumb -mcpu=cortex-m0)
+set(CPU_OPTIONS -mthumb -mcpu=cortex-m3)
+
+set(CMAKE_C_COMPILER /usr/bin/arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
 
 # optimizations (-O0 -O1 -O2 -O3 -Os -Ofast -Og -flto)
-set(CMAKE_C_FLAGS_DEBUG "-Og -g -DDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
-set(CMAKE_C_FLAGS_RELEASE "-Os -flto")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto")
+#set(CMAKE_C_FLAGS_DEBUG "-Og -g -DDEBUG")
+#set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
+#set(CMAKE_C_FLAGS_RELEASE "-Os -flto")
+#set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto")
 
 add_compile_options(
     ${CPU_OPTIONS}
@@ -62,11 +68,9 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     ${CPU_OPTIONS}
     -T${LINKER_SCRIPT}
-    -nostartfiles
-    m
-    # -nostdlib
+#    -nostartfiles
+#    m
+     -nostdlib
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})
-
-include("cmake/flash.cmake")
