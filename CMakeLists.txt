@@ -6,28 +6,18 @@ project(baremetal)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-# select linker script
-set(LINKER_SCRIPT "ld/stm32f031x6.ld")
+set(LINKER_SCRIPT "stm32f031x6.ld")
 
-# define CPU OPTIONS
 set(CPU_OPTIONS -mthumb -mcpu=cortex-m3)
 
 set(CMAKE_C_COMPILER /usr/bin/arm-none-eabi-gcc)
 set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
-
-# optimizations (-O0 -O1 -O2 -O3 -Os -Ofast -Og -flto)
-#set(CMAKE_C_FLAGS_DEBUG "-Og -g -DDEBUG")
-#set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
-#set(CMAKE_C_FLAGS_RELEASE "-Os -flto")
-#set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto")
 
 add_compile_options(
     ${CPU_OPTIONS}
     $<$<COMPILE_LANGUAGE:C>:-std=c11>
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
     $<$<COMPILE_LANGUAGE:CXX>:-fms-extensions>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>
     -fstrict-volatile-bitfields
@@ -57,20 +47,17 @@ link_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
-# list of modules to build final firmware (without extension .c or .cpp)
-add_executable(${PROJECT_NAME}
-    src/main
-    src/startup/startup
-    src/startup/stack
-    src/startup/handlers_cm
+add_executable(target
+        Src/startup/main.cpp
+        Src/startup/vector_table.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(target
     ${CPU_OPTIONS}
     -T${LINKER_SCRIPT}
-#    -nostartfiles
-#    m
+    -nostartfiles
+    m
      -nostdlib
 )
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})
+set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})
