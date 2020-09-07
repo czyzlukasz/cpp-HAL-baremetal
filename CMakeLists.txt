@@ -5,7 +5,7 @@ project(baremetal)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 
-set(LINKER_SCRIPT "stm32f031x6.ld")
+set(LINKER_SCRIPT "Src/Startup/stm32f031x6.ld")
 
 set(CPU_OPTIONS -mthumb -mcpu=cortex-m3)
 
