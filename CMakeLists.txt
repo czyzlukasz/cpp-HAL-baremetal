@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 
-# project name
 project(baremetal)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -15,28 +14,12 @@ set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
 
 add_compile_options(
     ${CPU_OPTIONS}
-    $<$<COMPILE_LANGUAGE:C>:-std=c11>
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>
-    $<$<COMPILE_LANGUAGE:CXX>:-fms-extensions>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>
-    -fstrict-volatile-bitfields
     -ffunction-sections
-    -fno-threadsafe-statics
-
     -Werror
     -Wall
     -Wextra
-    -Wcast-align
-    -Wconversion
-    -Wsign-conversion
-    -Wold-style-cast
-    -Wshadow
-    -Wlogical-op
-    -Wsuggest-override
-    -Wsuggest-final-types
-    -Wsuggest-final-methods
     -pedantic
+    -fno-exceptions
 )
 
 include_directories(
@@ -47,17 +30,30 @@ link_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
+# End of boilerplate
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F103x6")
+include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Src)
+include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Inc)
+include_directories(Cube/Drivers/CMSIS/Device/ST/STM32F1xx/Include)
+include_directories(Cube/Drivers/CMSIS/Include)
+include_directories(Cube/Drivers/CMSIS/Include)
+
+include_directories(Src/Hardware)
+
+
 add_executable(target
-        Src/startup/main.cpp
-        Src/startup/vector_table.cpp
-)
+        Src/Startup/main.cpp
+        Src/Startup/vector_table.cpp
+        Src/Hardware/Hardware.cpp
 
-target_link_libraries(target
-    ${CPU_OPTIONS}
-    -T${LINKER_SCRIPT}
-    -nostartfiles
-    m
-     -nostdlib
-)
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
 
+
+# Start of boilerplate
+
+target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles m -nostdlib)
 set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})
