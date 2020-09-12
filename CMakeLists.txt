@@ -4,6 +4,7 @@ project(baremetal)
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_CXX_STANDARD 17)
 
 set(LINKER_SCRIPT "Src/Startup/stm32f031x6.ld")
 
@@ -14,12 +15,13 @@ set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
 
 add_compile_options(
     ${CPU_OPTIONS}
-    -ffunction-sections
     -Werror
     -Wall
     -Wextra
     -pedantic
     -fno-exceptions
+    -ffunction-sections
+    -fdata-sections
 )
 
 include_directories(
@@ -55,5 +57,5 @@ add_executable(target
 
 # Start of boilerplate
 
-target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles m -nostdlib)
+target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles -nostdlib)
 set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})

@@ -46,16 +46,17 @@ SECTIONS {
         *(.data*)
         . = ALIGN(4);
         __data_end = .;
-    } >SRAM AT >FLASH
+    } >SRAM AT > FLASH
 
-    .bss ALIGN(4) (NOLOAD) : {
+    . = ALIGN(4);
+
+    .bss : {
         __bss_start = .;
+        __bss_start__ = __bss_start;
         *(.bss)
         *(.bss*)
-        . = ALIGN(4);
         __bss_end = .;
-        *(.noinit)
-        *(.noinit*)
+        __bss_end__ = __bss_end;
     } >SRAM
 
     . = ALIGN(4);
