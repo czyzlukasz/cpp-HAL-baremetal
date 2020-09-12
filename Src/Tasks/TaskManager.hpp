@@ -8,7 +8,7 @@
 
 
 struct Task {
-    using NameType = std::array<char, 15>;
+    using NameType = int;
 
     Task(NameType name, size_t periodicity, size_t priority);
     virtual void initialize() = 0;
@@ -26,7 +26,7 @@ struct TaskManager {
     void registerTasks();
 
 private:
-//    std::vector<std::shared_ptr<Task>> tasks;
+    std::vector<std::shared_ptr<Task>> tasks;
 };
 
 

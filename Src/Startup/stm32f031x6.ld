@@ -1,5 +1,5 @@
 MEMORY {
-    FLASH(rx) : ORIGIN = 0x08000000, LENGTH = 32K
+    FLASH(rx) : ORIGIN = 0x08000000, LENGTH = 64K
     SRAM(rwx) : ORIGIN = 0x20000000, LENGTH = 4K
 }
 
@@ -36,6 +36,12 @@ SECTIONS {
         __fini_array_end = .;
     } >FLASH
 
+    .ARM.exidx : {
+        __exidx_start = .;
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+        __exidx_end = .;
+    } >FLASH
+
     __stacktop = ORIGIN(SRAM) + LENGTH(SRAM);
     __data_load = LOADADDR(.data);
     . = ORIGIN(SRAM);
@@ -61,5 +67,6 @@ SECTIONS {
 
     . = ALIGN(4);
     __heap_start = .;
+    end = __heap_start;
 }
 

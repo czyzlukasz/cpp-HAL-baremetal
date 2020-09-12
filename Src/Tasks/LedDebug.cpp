@@ -1,6 +1,6 @@
 #include <LedDebug.hpp>
 
-LedDebug::LedDebug() : Task({'3', '2'}, 500, 0), i(){
+LedDebug::LedDebug() : Task({}, 500, 0), i(){
 
 }
 

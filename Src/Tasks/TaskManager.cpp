@@ -30,5 +30,11 @@ void Task::executeTask() {
 }
 
 void TaskManager::registerTasks() {
-//    tasks.push_back(std::make_shared<LedDebug>());
+    auto m = std::make_shared<int>();
+    auto n = std::make_shared<int>();
+    auto o = std::make_shared<int>();
+    tasks.push_back(std::make_shared<LedDebug>());
+    tasks.push_back(std::make_shared<LedDebug>());
+    tasks.push_back(std::make_shared<LedDebug>());
+    tasks.push_back(std::make_shared<LedDebug>());
 }

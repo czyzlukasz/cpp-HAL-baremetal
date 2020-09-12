@@ -11,7 +11,7 @@ extern size_t __data_load[];
 extern size_t __data_start[];
 extern size_t __data_end[];
 
-    // Substitute common functions because linker links with --nostdlib --nostartfiles
+    // Substitute common functions because linker links with --nostartfiles
 void *memset(void *str, int c, size_t n){
     for(size_t idx = 0; idx < n; ++n){
         *(static_cast<char*>(str) + idx) = c;
@@ -38,11 +38,19 @@ void* operator new(size_t size){
     return pvPortMalloc(size);
 }
 
+void* operator new(size_t size, [[maybe_unused]] std::align_val_t alignment){
+    return pvPortMalloc(size);
+}
+
 void operator delete(void* pointer){
     vPortFree(pointer);
 }
 
 void operator delete(void* pointer, [[maybe_unused]] size_t size){
+    vPortFree(pointer);
+}
+
+void operator delete(void* pointer, [[maybe_unused]] std::align_val_t alignment){
     vPortFree(pointer);
 }
 
