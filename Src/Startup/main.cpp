@@ -1,21 +1,22 @@
 #include <Hardware.hpp>
-#include <utility>
-size_t i = 0x0012345678;
-int m = -1234;
-size_t y;
-int k = 123;
-std::pair<int, long> sm = {-21, 0x1234567890};
+
 extern "C" {
+    // Ranges of the .bss section
 extern size_t __bss_start[];
 extern size_t __bss_end[];
 
+    // Starting point of the data being values for static variables
 extern size_t __data_load[];
+    // Location of the static variables
 extern size_t __data_start[];
 extern size_t __data_end[];
 }
-// This is an entry point
-void entryPoint() {
-    // Zero the bss section
+
+// Assume that user will use this function as 'main'
+void entryPoint();
+
+void resetHandler() {
+    // Zero the default-initialized data
     for(size_t* word = __bss_start; word < __bss_end; ++word){
         *word = 0;
     }
@@ -25,14 +26,7 @@ void entryPoint() {
         *(__data_start + idx) = *(__data_load + idx);
     }
 
-    // Initialize just LED
-    Hardware::configureClocks();
-    Hardware::enableGpio(GPIOC, GPIO_PIN_13, Gpio::Direction::Output);
-
-    while (true) {
-        Hardware::toggle(GPIOC, GPIO_PIN_13);
-        HAL_Delay(y);
-    }
+    entryPoint();
 }
 
 // Handler for 1ms interrupt

@@ -13,17 +13,6 @@ set(CPU_OPTIONS -mthumb -mcpu=cortex-m3)
 set(CMAKE_C_COMPILER /usr/bin/arm-none-eabi-gcc)
 set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
 
-add_compile_options(
-    ${CPU_OPTIONS}
-    -Werror
-    -Wall
-    -Wextra
-    -pedantic
-    -fno-exceptions
-    -ffunction-sections
-    -fdata-sections
-)
-
 include_directories(
     ${CMAKE_SOURCE_DIR}
 )
@@ -34,6 +23,17 @@ link_directories(
 
 # End of boilerplate
 
+add_compile_options(
+        ${CPU_OPTIONS}
+        -Werror
+        -Wall
+        -Wextra
+        -pedantic
+        -fno-exceptions
+        -ffunction-sections
+        -fdata-sections
+)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F103x6")
 include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Src)
@@ -43,19 +43,26 @@ include_directories(Cube/Drivers/CMSIS/Include)
 include_directories(Cube/Drivers/CMSIS/Include)
 
 include_directories(Src/Hardware)
+include_directories(Src/Tasks)
 
 
 add_executable(target
+        # Starting procedure
         Src/Startup/main.cpp
         Src/Startup/vector_table.cpp
+
+        # Hardware abstraction
         Src/Hardware/Hardware.cpp
+
+        # User code
+        Src/Tasks/TaskManager.cpp
 
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
 
 
-# Start of boilerplate
-
 target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles -nostdlib)
+
+# Start of boilerplate
 set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})

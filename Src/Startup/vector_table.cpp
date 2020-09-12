@@ -2,7 +2,7 @@ typedef void (*ptr_func_t)();
 
 extern "C" void __stop() { while (true); }
 
-__attribute__((weak, alias("__stop"))) void entryPoint();
+__attribute__((weak, alias("__stop"))) void resetHandler();
 __attribute__((weak, alias("__stop"))) void NMI_handler();
 __attribute__((weak, alias("__stop"))) void HARDFAULT_handler();
 __attribute__((weak, alias("__stop"))) void MEMMANAGE_handler();
@@ -16,7 +16,7 @@ __attribute__((weak, alias("__stop"))) void systick();
 __attribute__((weak, alias("__stop"))) void DUMMY_handler();
 
 __attribute__((section(".vectors"), used)) ptr_func_t __isr_vectors[] = {
-    entryPoint,
+    resetHandler,
     NMI_handler,
     HARDFAULT_handler,
     MEMMANAGE_handler,
