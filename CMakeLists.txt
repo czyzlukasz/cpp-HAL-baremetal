@@ -24,14 +24,13 @@ link_directories(
 # End of boilerplate
 
 add_compile_options(
-        ${CPU_OPTIONS}
-        -Werror
-        -Wall
-        -Wextra
-        -pedantic
-        -fno-exceptions
-        -ffunction-sections
-        -fdata-sections
+    ${CPU_OPTIONS}
+    -Werror
+    -Wall
+    -Wextra
+    -pedantic
+    -ffunction-sections
+    -fdata-sections
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")
@@ -45,6 +44,11 @@ include_directories(Cube/Drivers/CMSIS/Include)
 include_directories(Src/Hardware)
 include_directories(Src/Tasks)
 
+# FreeRTOS
+include_directories(FreeRTOS-Kernel/include)
+include_directories(FreeRTOS-Kernel/portable/GCC/ARM_CM3)
+include_directories(FreeRTOS-Kernel/portable/MemMang)
+
 
 add_executable(target
         # Starting procedure
@@ -56,7 +60,17 @@ add_executable(target
 
         # User code
         Src/Tasks/TaskManager.cpp
+        Src/Tasks/LedDebug.cpp
 
+        # FreeRTOS
+        FreeRTOS-Kernel/portable/GCC/ARM_CM3/port.c
+        FreeRTOS-Kernel/portable/MemMang/heap_4.c
+        FreeRTOS-Kernel/tasks.c
+        FreeRTOS-Kernel/list.c
+        FreeRTOS-Kernel/timers.c
+        FreeRTOS-Kernel/queue.c
+
+        # HAL
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
