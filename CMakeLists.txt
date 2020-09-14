@@ -37,6 +37,7 @@ add_compile_options(
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F103x6")
+
 include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Src)
 include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Inc)
 include_directories(Cube/Drivers/CMSIS/Device/ST/STM32F1xx/Include)
@@ -60,8 +61,8 @@ add_executable(target
         # Hardware abstraction
         Src/Hardware/Hardware.cpp
 
-        # User code
         Src/Tasks/TaskManager.cpp
+        # User code
         Src/Tasks/LedDebug.cpp
 
         # FreeRTOS
