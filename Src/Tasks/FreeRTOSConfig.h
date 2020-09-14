@@ -15,7 +15,7 @@ your application. */
 #define configMAX_TASK_NAME_LEN                 16
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 1
-#define configUSE_TASK_NOTIFICATIONS            1
+#define configUSE_TASK_NOTIFICATIONS            0
 #define configTASK_NOTIFICATION_ARRAY_ENTRIES   3
 #define configUSE_MUTEXES                       0
 #define configUSE_RECURSIVE_MUTEXES             0

@@ -33,7 +33,6 @@ add_compile_options(
     -ffunction-sections
     -fdata-sections
     -Os
-    -ggdb
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")

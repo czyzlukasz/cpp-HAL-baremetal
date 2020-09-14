@@ -5,16 +5,23 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <FreeRTOS-Kernel/include/projdefs.h>
 
 
 struct Task {
     using NameType = int;
 
     Task(NameType name, size_t periodicity, size_t priority);
-    virtual void initialize() = 0;
-    virtual void run() = 0;
 
+public:
     [[noreturn]] void executeTask();
+    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] size_t getPriority() const;
+    TaskFunction_t getEntryPoint();
+
+protected:
+    virtual void initialize() {};
+    virtual void run() {};
 
 protected:
     const NameType name;
@@ -24,6 +31,8 @@ protected:
 
 struct TaskManager {
     void registerTasks();
+    void startTasks();
+    void startRtos();
 
 private:
     std::vector<std::shared_ptr<Task>> tasks;
