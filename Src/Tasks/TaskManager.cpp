@@ -30,11 +30,14 @@ void Task::executeTask() {
 }
 
 void TaskManager::registerTasks() {
-    auto m = std::make_shared<int>();
-    auto n = std::make_shared<int>();
-    auto o = std::make_shared<int>();
+    int l;
+    l = 3544;
+    ++l;
+    HeapStats_t heapStats;
     tasks.push_back(std::make_shared<LedDebug>());
     tasks.push_back(std::make_shared<LedDebug>());
     tasks.push_back(std::make_shared<LedDebug>());
     tasks.push_back(std::make_shared<LedDebug>());
+    vPortGetHeapStats( &heapStats);
+    vPortGetHeapStats( &heapStats);
 }
