@@ -58,6 +58,7 @@ extern "C" {
     }
 }
 
+// FreeRTOS callbacks that will be used below
 extern "C" {
     void* pvPortMalloc(size_t);
     void* vPortFree(void*);
@@ -66,6 +67,7 @@ extern "C" {
     void xPortPendSVHandler();
     void xPortSysTickHandler();
 }
+
 // Substitute calls for dynamic memory with FreeRTOS syscalls
 void* operator new(size_t size){
     return pvPortMalloc(size);
@@ -83,6 +85,7 @@ void operator delete(void* ptr, [[maybe_unused]] size_t){
 // Assume that user will use this function as 'main'
 void entryPoint();
 
+// First function that is called after boot-up
 void resetHandler() {
     // Zero the default-initialized data
     for(size_t* word = __bss_start; word < __bss_end; ++word){
@@ -103,10 +106,12 @@ void systick() {
         xPortSysTickHandler();
 }
 
+// When something goes wrong
 void hardfault() {
-    while (true);
+    while (true); //OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo!
 }
 
+// Callbacks for FreeRTOS supervisor calls
 void svcHandler(){
     vPortSVCHandler();
 }

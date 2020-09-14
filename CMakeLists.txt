@@ -29,7 +29,6 @@ add_compile_options(
     -Wall
     -Wextra
     -pedantic
-    -fno-exceptions
     -ffunction-sections
     -fdata-sections
     -Os

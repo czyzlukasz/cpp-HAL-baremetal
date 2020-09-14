@@ -5,16 +5,14 @@
 #include <LedDebug.hpp>
 #include <functional>
 
-
+// TODO: move that to main.cpp
 extern "C" {
+    // Starting point of heap
     extern uint8_t __heap_start[];
     uint8_t* ucHeap = __heap_start;
-
-    void taskEntryPoint(void* task){
-        reinterpret_cast<Task*>(task)->executeTask();
-    }
 }
 
+// This is "main" - entry function that is called after system initialization
 void entryPoint(){
     TaskManager taskManager;
     taskManager.registerTasks();
@@ -37,15 +35,11 @@ void Task::executeTask() {
 }
 
 const char* Task::getName() const {
-    return "Name";
+    return "Test";//name.c_str();
 }
 
 size_t Task::getPriority() const {
     return priority;
-}
-
-TaskFunction_t Task::getEntryPoint() {
-    return [](void* member){reinterpret_cast<Task*>(member)->executeTask();};
 }
 
 void TaskManager::registerTasks() {
@@ -53,11 +47,16 @@ void TaskManager::registerTasks() {
 }
 
 void TaskManager::startTasks() {
-    void* k = pvPortMalloc(250);
+    // This method simply calls main task's method that executes that task
+    static const auto taskEntryPoint = [](void* task){
+        reinterpret_cast<Task*>(task)->executeTask();
+    };
+
+    // Create all task by calling executeTask(). This is done by passing task pointer to taskEntryPoint.
+    // TODO: Add stack size as a parameter
     for(const auto& task : tasks){
         xTaskCreate(taskEntryPoint, task->getName(), 128, task.get(), task->getPriority(), nullptr);
     }
-    vPortFree(k);
 }
 
 void TaskManager::startRtos() {
