@@ -27,9 +27,9 @@ public:
 
 protected:
     // Setup method that is run single time at the start of the task
-    virtual void initialize() {};
+    virtual void initialize() = 0;
     // Method that is called once per 'periodicity' milliseconds
-    virtual void run() {};
+    virtual void run() = 0;
 
 protected:
     const NameType name;

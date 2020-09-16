@@ -59,10 +59,11 @@ add_executable(target
 
         # Hardware abstraction
         Src/Hardware/Hardware.cpp
-
         Src/Tasks/TaskManager.cpp
+
         # User code
         Src/Tasks/LedDebug.cpp
+        Src/Tasks/AhrsInterface.cpp
 
         # FreeRTOS
         FreeRTOS-Kernel/portable/MemMang/heap_4.c
