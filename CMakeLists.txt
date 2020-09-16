@@ -34,8 +34,8 @@ add_compile_options(
     -Os
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F103x6")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTM32F103x6 -Wl,-gc-sections")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTM32F103x6 -Wl,-gc-sections")
 
 include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Src)
 include_directories(Cube/Drivers/STM32F1xx_HAL_Driver/Inc)
@@ -65,16 +65,22 @@ add_executable(target
         Src/Tasks/LedDebug.cpp
 
         # FreeRTOS
-        FreeRTOS-Kernel/portable/GCC/ARM_CM3/port.c
         FreeRTOS-Kernel/portable/MemMang/heap_4.c
+        FreeRTOS-Kernel/portable/GCC/ARM_CM3/port.c
         FreeRTOS-Kernel/tasks.c
         FreeRTOS-Kernel/list.c
         FreeRTOS-Kernel/timers.c
         FreeRTOS-Kernel/queue.c
+        FreeRTOS-Kernel/event_groups.c
 
         # HAL
+        Cube/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates/system_stm32f1xx.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_usart.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
 
 

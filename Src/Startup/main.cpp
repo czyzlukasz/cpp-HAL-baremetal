@@ -11,6 +11,9 @@ extern "C" {
     extern size_t __data_start[];
     extern size_t __data_end[];
 
+    // Static object destructor info, left unused
+    extern size_t __dso_handle[];
+
     // Substitute common functions because linker links with --nostartfiles
     void* memset(void * dest, int c, size_t n) {
         unsigned char *s = (unsigned char*) dest;
@@ -61,7 +64,7 @@ extern "C" {
 // FreeRTOS callbacks that will be used below
 extern "C" {
     void* pvPortMalloc(size_t);
-    void* vPortFree(void*);
+    void vPortFree(void*);
 
     void vPortSVCHandler();
     void xPortPendSVHandler();

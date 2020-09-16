@@ -10,7 +10,8 @@ struct LedDebug : public Task{
     void run() override;
 
 private:
-    size_t i;
+    uint8_t data[50];
+    uint8_t dataReceived[50];
 };
 
 
