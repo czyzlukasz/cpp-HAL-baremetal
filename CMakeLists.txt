@@ -1,23 +1,25 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+set(CMAKE_SYSTEM_NAME Generic)
+
 project(baremetal)
 
-set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(LINKER_SCRIPT "Src/Startup/stm32f031x6.ld")
 
 set(CPU_OPTIONS -mthumb -mcpu=cortex-m3)
 
-set(CMAKE_C_COMPILER /usr/bin/arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER /usr/bin/arm-none-eabi-g++)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
-link_directories(
+link_directories(DCMAKE_SYSTEM_NAME
     ${CMAKE_SOURCE_DIR}
 )
 
@@ -89,3 +91,5 @@ target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles -sp
 
 # Start of boilerplate
 set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})
+
+set(CMAKE_EXE_LINKER_FLAGS "" CACHE INTERNAL "")
