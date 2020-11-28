@@ -2,7 +2,7 @@
 #include <Hardware.hpp>
 
 
-LedDebug::LedDebug() : Task({}, 500, 2){
+LedDebug::LedDebug() : Task({}, 100, 2){
 
 }
 

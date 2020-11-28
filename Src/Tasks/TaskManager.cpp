@@ -4,7 +4,6 @@
 #include <functional>
 
 #include <LedDebug.hpp>
-#include <AhrsInterface.hpp>
 
 // TODO: move that to main.cpp
 extern "C" {
@@ -45,7 +44,6 @@ size_t Task::getPriority() const {
 
 void TaskManager::registerTasks() {
     tasks.push_back(std::make_shared<LedDebug>());
-    tasks.push_back(std::make_shared<AhrsInterface>());
 }
 
 void TaskManager::startTasks() {
