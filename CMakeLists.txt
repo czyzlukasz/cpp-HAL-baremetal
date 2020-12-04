@@ -65,6 +65,7 @@ add_executable(target
 
         # User code
         Src/Tasks/LedDebug.cpp
+        Src/Tasks/AhrsInterface.cpp
 
         # FreeRTOS
         FreeRTOS-Kernel/portable/MemMang/heap_4.c
@@ -86,7 +87,7 @@ add_executable(target
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
 
 
-target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles -specs=nosys.specs)
+target_link_libraries(target ${CPU_OPTIONS} -T${LINKER_SCRIPT} -nostartfiles -specs=rdimon.specs)
 
 # Start of boilerplate
 set_property(TARGET target PROPERTY LINK_DEPENDS ${CMAKE_SOURCE_DIR}/${LINKER_SCRIPT})

@@ -71,6 +71,11 @@ extern "C" {
     void xPortSysTickHandler();
 }
 
+// Semihosting stuff
+extern "C" {
+    extern void initialise_monitor_handles(void);
+}
+
 // Substitute calls for dynamic memory with FreeRTOS syscalls
 void* operator new(size_t size){
     return pvPortMalloc(size);
@@ -99,6 +104,9 @@ void resetHandler() {
     for(ptrdiff_t idx = 0; idx < __data_end - __data_start; ++idx){
         *(__data_start + idx) = *(__data_load + idx);
     }
+
+    // Enable semihosting
+    initialise_monitor_handles();
 
     entryPoint();
 }

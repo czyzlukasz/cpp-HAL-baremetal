@@ -4,6 +4,7 @@
 #include <functional>
 
 #include <LedDebug.hpp>
+#include <AhrsInterface.hpp>
 
 // TODO: move that to main.cpp
 extern "C" {
@@ -44,6 +45,7 @@ size_t Task::getPriority() const {
 
 void TaskManager::registerTasks() {
     tasks.push_back(std::make_shared<LedDebug>());
+    tasks.push_back(std::make_shared<AhrsInterface>());
 }
 
 void TaskManager::startTasks() {
@@ -55,7 +57,7 @@ void TaskManager::startTasks() {
     // Create all task by calling executeTask(). This is done by passing task pointer to taskEntryPoint.
     // TODO: Add stack size as a parameter
     for(const auto& task : tasks){
-        xTaskCreate(taskEntryPoint, task->getName(), 128, task.get(), task->getPriority(), nullptr);
+        xTaskCreate(taskEntryPoint, task->getName(), 512, task.get(), task->getPriority(), nullptr);
     }
 }
 
