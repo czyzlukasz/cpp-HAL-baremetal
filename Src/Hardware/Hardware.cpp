@@ -56,13 +56,17 @@ void Hardware::initializeUart(Uart::Uart id, uint32_t baudRate) {
             HAL_NVIC_EnableIRQ(USART1_IRQn);
             break;
         case Uart::Uart::UART_2:
-            // TODO: implement
             __HAL_RCC_GPIOA_CLK_ENABLE();
+            __HAL_RCC_USART2_CLK_ENABLE();
+            enableGpio(GPIOA, GPIO_PIN_2, Gpio::Mode::AlternatePP, Gpio::Pull::NoPull);  // TX2
+            enableGpio(GPIOA, GPIO_PIN_3, Gpio::Mode::AlternateInput, Gpio::Pull::Pullup);  // RX2
+            HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+            HAL_NVIC_EnableIRQ(USART2_IRQn);
             break;
     }
 
     Uart::State& state = getUartState(id);
-    state.handle.Instance = USART1;
+    state.handle.Instance = id == Uart::Uart::UART_1 ? USART1 : USART2;
     state.handle.Init.BaudRate = baudRate;
     state.handle.Init.WordLength = UART_WORDLENGTH_8B;
     state.handle.Init.Parity = UART_PARITY_NONE;
@@ -140,9 +144,18 @@ void USART1_IRQHandler() {
     HAL_UART_IRQHandler(&Hardware::getUartState(Uart::Uart::UART_1).handle);
 }
 
+void USART2_IRQHandler() {
+    HAL_UART_IRQHandler(&Hardware::getUartState(Uart::Uart::UART_2).handle);
+}
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     if(huart->Instance == USART1){
         if(auto* eventGroup = Hardware::getUartState(Uart::Uart::UART_1).txRxState) {
+            xEventGroupClearBitsFromISR(eventGroup, Uart::State::txBit);
+        }
+    }
+    else if(huart->Instance == USART2){
+        if(auto* eventGroup = Hardware::getUartState(Uart::Uart::UART_2).txRxState) {
             xEventGroupClearBitsFromISR(eventGroup, Uart::State::txBit);
         }
     }
@@ -150,6 +163,11 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if(huart->Instance == USART1){
+        if(auto* eventGroup = Hardware::getUartState(Uart::Uart::UART_1).txRxState) {
+            xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
+        }
+    }
+    if(huart->Instance == USART2){
         if(auto* eventGroup = Hardware::getUartState(Uart::Uart::UART_1).txRxState) {
             xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
         }
