@@ -57,7 +57,7 @@ void TaskManager::startTasks() {
     // Create all task by calling executeTask(). This is done by passing task pointer to taskEntryPoint.
     // TODO: Add stack size as a parameter
     for(const auto& task : tasks){
-        xTaskCreate(taskEntryPoint, task->getName(), 512, task.get(), task->getPriority(), nullptr);
+        xTaskCreate(taskEntryPoint, task->getName(), 64, task.get(), task->getPriority(), nullptr);
     }
 }
 
