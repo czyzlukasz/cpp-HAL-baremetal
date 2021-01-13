@@ -5,6 +5,7 @@
 
 #include <LedDebug.hpp>
 #include <AhrsInterface.hpp>
+#include <GpsInterface.hpp>
 
 // TODO: move that to main.cpp
 extern "C" {
@@ -46,6 +47,7 @@ size_t Task::getPriority() const {
 void TaskManager::registerTasks() {
     tasks.push_back(std::make_shared<LedDebug>());
     tasks.push_back(std::make_shared<AhrsInterface>());
+    tasks.push_back(std::make_shared<GpsInterface>());
 }
 
 void TaskManager::startTasks() {

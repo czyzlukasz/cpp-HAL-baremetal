@@ -2,7 +2,24 @@
 #include <Hardware.hpp>
 #include <numeric>
 
-AhrsInterface::AhrsInterface() : Task("", 100, 1){
+AhrsInterface::AhrsInterface() :
+    Task("", 100, 1),
+    currentParameterIndex(0),
+    parametersToRead({
+//         AhrsMsgId::SENSOR_TEMPERATURE,
+//         AhrsMsgId::GYRO_X,
+//         AhrsMsgId::GYRO_Y,
+//         AhrsMsgId::GYRO_Z,
+//         AhrsMsgId::ACCEL_X,
+//         AhrsMsgId::ACCEL_Y,
+//         AhrsMsgId::ACCEL_Z,
+//         AhrsMsgId::MAG_X,
+//         AhrsMsgId::MAG_Y,
+//         AhrsMsgId::MAG_Z,
+         AhrsMsgId::GPS_LATITUDE,
+         AhrsMsgId::GPS_SPEED,
+         AhrsMsgId::GPS_TIME,
+    }){
 
 }
 
@@ -13,13 +30,26 @@ void AhrsInterface::initialize() {
 
 void AhrsInterface::run() {
     // TODO: gangbang AHRS with message requests, expect that every time AHRS will catch up and not time out
-    [[maybe_unused]] const bool result = verifyReceivedMessage();
-    printf("Msg verification: %s, result value: %ld\n", result ? "OK" : "NOK", static_cast<int32_t>(getValueFromMsg(receiveBuffer) * 1000));
+    if(verifyReceivedMessage()){
+        const auto [id, value] = getValueFromMsg(receiveBuffer);
+        printf("Msg verified, parameter 0x%x (%s), value x1000:%lu\n", static_cast<uint>(id), (id == AhrsMsgId::GPS_SPEED ? "Speed" : (id == AhrsMsgId::GPS_TIME ? "Time" : "Lat")), static_cast<uint32_t>(value));
+        parameterValues.emplace(id, value);
+    }
+    else{
+        printf("Msg invalid\n");
+        Hardware::abortUartTx(Uart::Uart::UART_1);
+        Hardware::abortUartRx(Uart::Uart::UART_1);
+    }
 
     // Prepare for new Msg
     Hardware::uartReceive(Uart::Uart::UART_1, receiveBuffer.data(), 11);
     // Request new Msg
-    sendRequest(AhrsMsgId::ACCEL_X);
+    [[maybe_unused]] const AhrsMsgId newMsgId = parametersToRead.at(currentParameterIndex);
+    ++currentParameterIndex;
+    if(currentParameterIndex >= parametersToRead.size()){
+        currentParameterIndex = 0;
+    }
+    sendRequest(newMsgId);
 }
 
 void AhrsInterface::sendRequest(AhrsMsgId msgId) {
@@ -66,7 +96,9 @@ bool AhrsInterface::verifyReceivedMessage() const{
     return result;
 }
 
-float AhrsInterface::getValueFromMsg(const AhrsInterface::MsgBuffer &buffer) const {
+std::pair<AhrsMsgId, uint32_t> AhrsInterface::getValueFromMsg(const AhrsInterface::MsgBuffer &buffer) const {
+    const auto id = static_cast<AhrsMsgId>(buffer.at(4));
+
     union {
         uint32_t integerValue;
         float floatValue;
@@ -75,5 +107,8 @@ float AhrsInterface::getValueFromMsg(const AhrsInterface::MsgBuffer &buffer) con
     result.integerValue += static_cast<uint32_t>(buffer.at(6)) << 16;
     result.integerValue += static_cast<uint32_t>(buffer.at(7)) << 8;
     result.integerValue += static_cast<uint32_t>(buffer.at(8)) << 0;
-    return result.floatValue;
+
+//    const float value = result.floatValue;
+
+    return {id, result.integerValue};
 }
