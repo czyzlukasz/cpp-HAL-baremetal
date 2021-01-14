@@ -10,8 +10,12 @@ struct GpsInterface : public Task{
     void run() override;
 
 private:
-    std::array<uint8_t, 64> receiveBuffer;
-    uint8_t successfullReceptions;
+    void prepareBufferForRead();
+    [[nodiscard]] bool isBufferFilled() const;
+
+    // Buffer is allocated on heap to avoid large stack allocation
+    std::unique_ptr<std::array<uint8_t, 256>> receiveBuffer;
+    int dummy;
 };
 
 

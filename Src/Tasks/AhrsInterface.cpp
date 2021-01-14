@@ -6,19 +6,16 @@ AhrsInterface::AhrsInterface() :
     Task("", 100, 1),
     currentParameterIndex(0),
     parametersToRead({
-//         AhrsMsgId::SENSOR_TEMPERATURE,
-//         AhrsMsgId::GYRO_X,
-//         AhrsMsgId::GYRO_Y,
-//         AhrsMsgId::GYRO_Z,
-//         AhrsMsgId::ACCEL_X,
-//         AhrsMsgId::ACCEL_Y,
-//         AhrsMsgId::ACCEL_Z,
-//         AhrsMsgId::MAG_X,
-//         AhrsMsgId::MAG_Y,
-//         AhrsMsgId::MAG_Z,
-         AhrsMsgId::GPS_LATITUDE,
-         AhrsMsgId::GPS_SPEED,
-         AhrsMsgId::GPS_TIME,
+         AhrsMsgId::SENSOR_TEMPERATURE,
+         AhrsMsgId::GYRO_X,
+         AhrsMsgId::GYRO_Y,
+         AhrsMsgId::GYRO_Z,
+         AhrsMsgId::ACCEL_X,
+         AhrsMsgId::ACCEL_Y,
+         AhrsMsgId::ACCEL_Z,
+         AhrsMsgId::MAG_X,
+         AhrsMsgId::MAG_Y,
+         AhrsMsgId::MAG_Z,
     }){
 
 }
@@ -32,19 +29,20 @@ void AhrsInterface::run() {
     // TODO: gangbang AHRS with message requests, expect that every time AHRS will catch up and not time out
     if(verifyReceivedMessage()){
         const auto [id, value] = getValueFromMsg(receiveBuffer);
-        printf("Msg verified, parameter 0x%x (%s), value x1000:%lu\n", static_cast<uint>(id), (id == AhrsMsgId::GPS_SPEED ? "Speed" : (id == AhrsMsgId::GPS_TIME ? "Time" : "Lat")), static_cast<uint32_t>(value));
+        printf("AHRS Msg verified, parameter 0x%x, value x1000:%li\n", static_cast<uint>(id), static_cast<int32_t>(value * 1000));
         parameterValues.emplace(id, value);
     }
     else{
-        printf("Msg invalid\n");
+        printf("AHRS Msg invalid\n");
         Hardware::abortUartTx(Uart::Uart::UART_1);
         Hardware::abortUartRx(Uart::Uart::UART_1);
     }
 
     // Prepare for new Msg
+    receiveBuffer.fill(0);
     Hardware::uartReceive(Uart::Uart::UART_1, receiveBuffer.data(), 11);
     // Request new Msg
-    [[maybe_unused]] const AhrsMsgId newMsgId = parametersToRead.at(currentParameterIndex);
+    const AhrsMsgId newMsgId = parametersToRead.at(currentParameterIndex);
     ++currentParameterIndex;
     if(currentParameterIndex >= parametersToRead.size()){
         currentParameterIndex = 0;
@@ -53,9 +51,8 @@ void AhrsInterface::run() {
 }
 
 void AhrsInterface::sendRequest(AhrsMsgId msgId) {
-    // Clear all buffers in preparation for new data
+    // Clear buffer in preparation for new data
     sendBuffer.fill(0);
-    receiveBuffer.fill(0);
     // Msg header
     sendBuffer.at(0) = 's';
     sendBuffer.at(1) = 'n';
@@ -96,7 +93,7 @@ bool AhrsInterface::verifyReceivedMessage() const{
     return result;
 }
 
-std::pair<AhrsMsgId, uint32_t> AhrsInterface::getValueFromMsg(const AhrsInterface::MsgBuffer &buffer) const {
+std::pair<AhrsMsgId, float> AhrsInterface::getValueFromMsg(const AhrsInterface::MsgBuffer &buffer) const {
     const auto id = static_cast<AhrsMsgId>(buffer.at(4));
 
     union {
@@ -108,7 +105,7 @@ std::pair<AhrsMsgId, uint32_t> AhrsInterface::getValueFromMsg(const AhrsInterfac
     result.integerValue += static_cast<uint32_t>(buffer.at(7)) << 8;
     result.integerValue += static_cast<uint32_t>(buffer.at(8)) << 0;
 
-//    const float value = result.floatValue;
+    const float value = result.floatValue;
 
-    return {id, result.integerValue};
+    return {id, value};
 }
