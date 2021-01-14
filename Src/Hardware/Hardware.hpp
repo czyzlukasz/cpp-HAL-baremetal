@@ -63,6 +63,7 @@ struct Hardware {
      */
     static void enableGpio(GPIO_TypeDef* gpio, uint32_t pin, Gpio::Mode direction, Gpio::Pull pull = Gpio::Pull::NoPull);
     static void toggle(GPIO_TypeDef* gpio, uint32_t pin);
+
     /**
      * @brief Configure system clock
      */
@@ -74,6 +75,7 @@ struct Hardware {
      * @param baudRate Speed of UART operation
      */
     static void initializeUart(Uart::Uart id, uint32_t baudRate);
+
     /**
      * @brief Send data via interrupt mode UART
      * @param id ID of UART
@@ -82,6 +84,7 @@ struct Hardware {
      * @warning Note that data is not copied anywhere and needs to be available during entire transmission.
      */
     static void uartSend(Uart::Uart id, uint8_t data[], size_t numOfBytes);
+
     /**
      * @brief Receive data via interrupt mode UART
      * @param id ID of UART
@@ -89,33 +92,34 @@ struct Hardware {
      * @param numOfBytes Length of expected data in bytes
      */
     static void uartReceive(Uart::Uart id, uint8_t data[], size_t numOfBytes);
+
     /**
      * @brief Check if UART TX is busy
      * @param id ID of UART
      * @return true if UART TX is ready for transmission
      */
     static bool isUartTxComplete(Uart::Uart id);
+
     /**
      * @brief Check if UART RX is busy
      * @param id ID of UART
      * @return true if UART RX is ready for transmission
      */
     static bool isUartRxComplete(Uart::Uart id);
+
     /**
      * @brief Stop transmitting data via UART
      * @param id ID of UART
      */
     static void abortUartTx(Uart::Uart id);
+
     /**
      * @brief Stop receiving data via UART
      * @param id ID of UART
      */
     static void abortUartRx(Uart::Uart id);
-
-private:
     static Uart::State& getUartState(Uart::Uart id);
 
-public:
     /**
      * @brief Configure I2C in master mode
      * @param id ID of I2C. Currently only I2C_1 is supported.
@@ -123,6 +127,7 @@ public:
      * @param speed Transmission speed in Hz. This value needs to be between 100000Hz and 400000Hz
      */
     static void initializeI2C(I2C::I2C id, uint32_t address, uint32_t speed);
+
     /**
      * @brief Send data via interrupt mode I2C as a master
      * @param id ID of I2C
@@ -132,6 +137,7 @@ public:
      * @warning Note that data is not copied anywhere and needs to be available during entire transmission.
      */
     static void i2cSendMaster(I2C::I2C id, uint16_t address, uint8_t data[], size_t numOfBytes);
+
     /**
      * @brief Receive data via interrupt mode I2C as a master
      * @param id ID of I2C
@@ -140,8 +146,6 @@ public:
      * @param numOfBytes Length of data in bytes
      */
     static void i2cReceiveMaster(I2C::I2C id, uint16_t address, uint8_t data[], size_t numOfBytes);
-
-private:
     static I2C::State& getI2CState(I2C::I2C id);
 
 private:
