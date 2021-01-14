@@ -52,19 +52,24 @@ void Hardware::configureClocks() {
 void Hardware::initializeUart(Uart::Uart id, uint32_t baudRate) {
     switch (id) {
         case Uart::Uart::UART_1:
+            // Enable clocks
             __HAL_RCC_GPIOA_CLK_ENABLE();
             __HAL_RCC_USART1_CLK_ENABLE();
+            // Set GPIO
             enableGpio(GPIOA, GPIO_PIN_9, Gpio::Mode::AlternatePP, Gpio::Pull::NoPull);  // TX1
             enableGpio(GPIOA, GPIO_PIN_10, Gpio::Mode::AlternateInput, Gpio::Pull::Pullup);  // RX1
-
+            // Enable interrupts with low priority
             HAL_NVIC_SetPriority(USART1_IRQn, 10, 0);
             HAL_NVIC_EnableIRQ(USART1_IRQn);
             break;
         case Uart::Uart::UART_2:
+            // Enable clocks
             __HAL_RCC_GPIOA_CLK_ENABLE();
             __HAL_RCC_USART2_CLK_ENABLE();
+            // Set GPIO
             enableGpio(GPIOA, GPIO_PIN_2, Gpio::Mode::AlternatePP, Gpio::Pull::NoPull);  // TX2
             enableGpio(GPIOA, GPIO_PIN_3, Gpio::Mode::AlternateInput, Gpio::Pull::Pullup);  // RX2
+            // Enable interrupts with low priority
             HAL_NVIC_SetPriority(USART2_IRQn, 10, 0);
             HAL_NVIC_EnableIRQ(USART2_IRQn);
             break;
@@ -80,8 +85,10 @@ void Hardware::initializeUart(Uart::Uart id, uint32_t baudRate) {
     state.handle.Init.OverSampling = UART_OVERSAMPLING_16;
     state.handle.Init.Mode = UART_MODE_TX_RX;
 
+    // Set registers with prepared data
     HAL_UART_Init(&state.handle);
 
+    // Enable interrupts
     __HAL_UART_ENABLE_IT(&state.handle, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&state.handle, UART_IT_TC);
 
@@ -92,9 +99,11 @@ void Hardware::initializeUart(Uart::Uart id, uint32_t baudRate) {
 
 void Hardware::uartSend(Uart::Uart id, uint8_t *data, size_t numOfBytes) {
     Uart::State& state = getUartState(id);
+    // Check if event group was created
     if(state.txRxState) {
         // Check if there is no transmission
         if((xEventGroupGetBits(state.txRxState) & Uart::State::txBit) == 0) {
+            // If UART is not busy, transmit and set TX flag to busy
             HAL_UART_Transmit_IT(&state.handle, data, numOfBytes);
             xEventGroupSetBits(state.txRxState, Uart::State::txBit);
         }
@@ -103,9 +112,11 @@ void Hardware::uartSend(Uart::Uart id, uint8_t *data, size_t numOfBytes) {
 
 void Hardware::uartReceive(Uart::Uart id, uint8_t *data, size_t numOfBytes) {
     Uart::State& state = getUartState(id);
+    // Check if event group was created
     if(state.txRxState) {
         // Check if there is no transmission
         if((xEventGroupGetBits(state.txRxState) & Uart::State::rxBit) == 0) {
+            // If UART is not busy, transmit and set RX flag to busy
             HAL_UART_Receive_IT(&state.handle, data, numOfBytes);
             xEventGroupSetBits(state.txRxState, Uart::State::rxBit);
         }
@@ -146,10 +157,13 @@ Uart::State& Hardware::getUartState(Uart::Uart id) {
 void Hardware::initializeI2C(I2C::I2C id, uint32_t address, uint32_t speed) {
     switch (id) {
         case I2C::I2C::I2C_1:
+            // Enable clocks
             __HAL_RCC_GPIOB_CLK_ENABLE();
             __HAL_RCC_I2C1_CLK_ENABLE();
+            // Set GPIO
             enableGpio(GPIOB, GPIO_PIN_6, Gpio::Mode::AlternateOD, Gpio::Pull::Pullup);  // SCL
             enableGpio(GPIOB, GPIO_PIN_7, Gpio::Mode::AlternateOD, Gpio::Pull::Pullup);  // SDA
+            // Enable interrupts with high priority due to silicon limitation (UM1850 p. 259)
             HAL_NVIC_SetPriority(I2C1_EV_IRQn, 1, 1);
             HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
             HAL_NVIC_SetPriority(I2C1_ER_IRQn, 1, 1);
@@ -170,7 +184,11 @@ void Hardware::initializeI2C(I2C::I2C id, uint32_t address, uint32_t speed) {
     state.handle.Init.OwnAddress2 = 0;
     state.handle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
     state.handle.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+
+    // Set registers with prepared data
     HAL_I2C_Init(&state.handle);
+
+    // Enable interrupts
     __HAL_I2C_ENABLE_IT(&state.handle, I2C_IT_BUF);
     __HAL_I2C_ENABLE_IT(&state.handle, I2C_IT_EVT);
     __HAL_I2C_ENABLE_IT(&state.handle, I2C_IT_ERR);
@@ -182,9 +200,11 @@ void Hardware::initializeI2C(I2C::I2C id, uint32_t address, uint32_t speed) {
 
 void Hardware::i2cSendMaster(I2C::I2C id, uint16_t address, uint8_t *data, size_t numOfBytes) {
     I2C::State& state = getI2CState(id);
+    // Check if event group was created
     if(state.txRxState) {
         // Check if there is no transmission
         if((xEventGroupGetBits(state.txRxState) & I2C::State::txBit) == 0) {
+            // If I2C is not busy, transmit and set TX flag to busy
             HAL_I2C_Master_Transmit_IT(&state.handle, address, data, numOfBytes);
             xEventGroupSetBits(state.txRxState, I2C::State::txBit);
         }
@@ -193,9 +213,11 @@ void Hardware::i2cSendMaster(I2C::I2C id, uint16_t address, uint8_t *data, size_
 
 void Hardware::i2cReceiveMaster(I2C::I2C id, uint16_t address, uint8_t *data, size_t numOfBytes) {
     I2C::State& state = getI2CState(id);
+    // Check if event group was created
     if(state.txRxState) {
         // Check if there is no transmission
         if((xEventGroupGetBits(state.txRxState) & I2C::State::rxBit) == 0) {
+            // If I2C is not busy, transmit and set RX flag to busy
             HAL_I2C_Master_Transmit_IT(&state.handle, address, data, numOfBytes);
             xEventGroupSetBits(state.txRxState, I2C::State::rxBit);
         }
