@@ -53,6 +53,16 @@ namespace I2C {
     };
 }
 
+namespace SPI {
+    struct State {
+        EventGroupHandle_t txRxState;
+        SPI_HandleTypeDef handle;
+
+        static constexpr size_t txBit = 1 << 0;
+        static constexpr size_t rxBit = 1 << 1;
+    };
+}
+
 struct Hardware {
     /**
      * @brief Configure GPIO pin
@@ -148,9 +158,16 @@ struct Hardware {
     static void i2cReceiveMaster(I2C::I2C id, uint16_t address, uint8_t data[], size_t numOfBytes);
     static I2C::State& getI2CState(I2C::I2C id);
 
+    static void initializeSpi();
+    static void spiSend(uint8_t data[], size_t numOfBytes);
+    static void spiReceive(uint8_t data[], size_t numOfBytes);
+
+    static SPI::State& getSpiState();
+
 private:
     static std::array<Uart::State, 2> uartStates;
     static std::array<I2C::State, 2> i2cStates;
+    static std::array<SPI::State, 1> spiState;
 };
 
 

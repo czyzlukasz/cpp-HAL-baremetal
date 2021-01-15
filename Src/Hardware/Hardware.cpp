@@ -3,6 +3,7 @@
 
 std::array<Uart::State, 2> Hardware::uartStates;
 std::array<I2C::State, 2> Hardware::i2cStates;
+std::array<SPI::State, 1> Hardware::spiState;
 
 void Hardware::enableGpio(GPIO_TypeDef* gpio, uint32_t pin, Gpio::Mode direction, Gpio::Pull pull) {
 
@@ -235,6 +236,69 @@ I2C::State &Hardware::getI2CState(I2C::I2C id) {
     return getI2CState(id);
 }
 
+void Hardware::initializeSpi() {
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_SPI1_CLK_ENABLE();
+    enableGpio(GPIOA, GPIO_PIN_5, Gpio::Mode::AlternatePP, Gpio::Pull::NoPull);  // SCK
+    enableGpio(GPIOA, GPIO_PIN_6, Gpio::Mode::AlternateInput, Gpio::Pull::NoPull);  // MISO
+    enableGpio(GPIOA, GPIO_PIN_7, Gpio::Mode::AlternatePP, Gpio::Pull::NoPull);  // MOSI
+    HAL_NVIC_SetPriority(SPI1_IRQn, 5, 5);
+    HAL_NVIC_EnableIRQ(SPI1_IRQn);
+
+    SPI_HandleTypeDef& handle = spiState.at(0).handle;
+    handle.Instance = SPI1;
+    handle.Init.Mode = SPI_MODE_MASTER;
+    handle.Init.Direction = SPI_DIRECTION_1LINE;
+    handle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+    handle.Init.CLKPhase = SPI_PHASE_2EDGE;
+    handle.Init.CLKPolarity = SPI_POLARITY_HIGH;
+    handle.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    handle.Init.DataSize = SPI_DATASIZE_8BIT;
+    handle.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    handle.Init.NSS = SPI_NSS_SOFT;
+    handle.Init.TIMode = SPI_TIMODE_DISABLE;
+
+    HAL_SPI_Init(&handle);
+
+    __HAL_SPI_ENABLE_IT(&handle, SPI_IT_TXE);
+    __HAL_SPI_ENABLE_IT(&handle, SPI_IT_RXNE);
+    __HAL_SPI_ENABLE_IT(&handle, SPI_IT_ERR);
+
+    // Clear bits
+    spiState.at(0).txRxState = xEventGroupCreate();
+    xEventGroupClearBits(spiState.at(0).txRxState, SPI::State::rxBit | SPI::State::txBit);
+}
+
+void Hardware::spiSend(uint8_t *data, size_t numOfBytes) {
+    SPI::State& state = getSpiState();
+    // Check if event group was created
+    if(state.txRxState) {
+        // Check if there is no transmission
+        if((xEventGroupGetBits(state.txRxState) & SPI::State::txBit) == 0) {
+            // If UART is not busy, transmit and set TX flag to busy
+            HAL_SPI_Transmit_IT(&state.handle, data, numOfBytes);
+            xEventGroupSetBits(state.txRxState, Uart::State::txBit);
+        }
+    }
+}
+
+void Hardware::spiReceive(uint8_t *data, size_t numOfBytes) {
+    SPI::State& state = getSpiState();
+    // Check if event group was created
+    if(state.txRxState) {
+        // Check if there is no transmission
+        if((xEventGroupGetBits(state.txRxState) & SPI::State::rxBit) == 0) {
+            // If UART is not busy, transmit and set RX flag to busy
+            HAL_SPI_Receive_IT(&state.handle, data, numOfBytes);
+            xEventGroupSetBits(state.txRxState, SPI::State::rxBit);
+        }
+    }
+}
+
+SPI::State &Hardware::getSpiState() {
+    return spiState.at(0);
+}
+
 // Handlers for default HAL UART callbacks
 
 void USART1_IRQHandler() {
@@ -294,5 +358,40 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
         if(auto* eventGroup = Hardware::getI2CState(I2C::I2C::I2C_1).txRxState) {
             xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
         }
+    }
+}
+
+// Handlers for SPI transmission
+
+void SPI1_IRQHandler(){
+    HAL_SPI_IRQHandler(&Hardware::getSpiState().handle);
+}
+
+void HAL_SPI_TxCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
+    if(auto* eventGroup = Hardware::getSpiState().txRxState) {
+        xEventGroupClearBitsFromISR(eventGroup, Uart::State::txBit);
+    }
+}
+
+void HAL_SPI_RxCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
+    if(auto* eventGroup = Hardware::getSpiState().txRxState) {
+        xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
+    }
+}
+
+void HAL_SPI_TxHalfCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
+    if(auto* eventGroup = Hardware::getSpiState().txRxState) {
+        xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
+    }
+}
+void HAL_SPI_RxHalfCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
+    if(auto* eventGroup = Hardware::getSpiState().txRxState) {
+        xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
+    }
+}
+
+void HAL_SPI_ErrorCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
+    if(auto* eventGroup = Hardware::getSpiState().txRxState) {
+        xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
     }
 }
