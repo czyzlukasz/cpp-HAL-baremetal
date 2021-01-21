@@ -65,8 +65,6 @@ add_executable(target
 
         # User code
         Src/Tasks/LedDebug.cpp
-        Src/Tasks/AhrsInterface.cpp
-        Src/Tasks/GpsInterface.cpp
 
         # FreeRTOS
         FreeRTOS-Kernel/portable/MemMang/heap_4.c
@@ -83,6 +81,8 @@ add_executable(target
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_usart.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
