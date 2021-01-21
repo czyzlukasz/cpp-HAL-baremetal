@@ -85,6 +85,7 @@ add_executable(target
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
+        Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_can.c
         Cube/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c)
 
 

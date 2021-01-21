@@ -63,6 +63,26 @@ namespace SPI {
     };
 }
 
+namespace CAN {
+    struct State {
+        CAN_HandleTypeDef handle;
+    };
+
+    struct RxMessage {
+        [[nodiscard]] uint32_t getId() const;
+
+        CAN_RxHeaderTypeDef header;
+        std::array<uint8_t, 8> payload;
+    };
+
+    struct TxMessage {
+        explicit TxMessage(uint32_t id);
+
+        CAN_TxHeaderTypeDef header;
+        std::array<uint8_t, 8> payload;
+    };
+}
+
 struct Hardware {
     /**
      * @brief Configure GPIO pin
@@ -161,13 +181,21 @@ struct Hardware {
     static void initializeSpi();
     static void spiSend(uint8_t data[], size_t numOfBytes);
     static void spiReceive(uint8_t data[], size_t numOfBytes);
-
     static SPI::State& getSpiState();
+
+    static void initializeCan();
+    static bool isAnyTxMailboxFree();
+    static bool isAnyRxMessagePending();
+    static std::optional<CAN::RxMessage> receiveCanMessage();
+    static void sendCanMessage(CAN::TxMessage &message);
+
+    static CAN::State& getCanState();
 
 private:
     static std::array<Uart::State, 2> uartStates;
     static std::array<I2C::State, 2> i2cStates;
     static std::array<SPI::State, 1> spiState;
+    static std::array<CAN::State, 1> canState;
 };
 
 

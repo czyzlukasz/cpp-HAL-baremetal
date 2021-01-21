@@ -4,6 +4,19 @@
 std::array<Uart::State, 2> Hardware::uartStates;
 std::array<I2C::State, 2> Hardware::i2cStates;
 std::array<SPI::State, 1> Hardware::spiState;
+std::array<CAN::State, 1> Hardware::canState;
+
+
+uint32_t CAN::RxMessage::getId() const {
+    return header.ExtId;
+}
+
+CAN::TxMessage::TxMessage(uint32_t id) {
+    header.ExtId = id;
+    header.IDE = CAN_ID_EXT;
+    header.RTR = CAN_RTR_DATA;
+    header.DLC = payload.size();
+}
 
 void Hardware::enableGpio(GPIO_TypeDef* gpio, uint32_t pin, Gpio::Mode direction, Gpio::Pull pull) {
 
@@ -299,6 +312,71 @@ SPI::State &Hardware::getSpiState() {
     return spiState.at(0);
 }
 
+void Hardware::initializeCan() {
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_CAN1_CLK_ENABLE();
+    enableGpio(GPIOA, GPIO_PIN_11, Gpio::Mode::AlternateOD, Gpio::Pull::NoPull); // RX
+    enableGpio(GPIOA, GPIO_PIN_12, Gpio::Mode::AlternateOD, Gpio::Pull::NoPull); // TX
+    HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 5, 5);
+    HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+    HAL_NVIC_SetPriority(CAN1_SCE_IRQn, 5, 5);
+    HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
+
+    CAN_HandleTypeDef& handle = getCanState().handle;
+
+    handle.Instance = CAN1;
+    handle.Init.Prescaler = 1;
+    handle.Init.Mode = CAN_MODE_NORMAL;
+    handle.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    handle.Init.TimeSeg1 = CAN_BS1_6TQ;
+    handle.Init.TimeSeg2 = CAN_BS2_1TQ;
+    handle.Init.TimeTriggeredMode = DISABLE;
+    handle.Init.AutoBusOff = DISABLE;
+    handle.Init.AutoWakeUp = DISABLE;
+    handle.Init.AutoRetransmission = ENABLE;
+    handle.Init.ReceiveFifoLocked = DISABLE;
+    handle.Init.TransmitFifoPriority = DISABLE;
+
+    HAL_CAN_Init(&handle);
+
+    HAL_CAN_Start(&handle);
+}
+
+bool Hardware::isAnyTxMailboxFree() {
+    return HAL_CAN_GetTxMailboxesFreeLevel(&getCanState().handle) > 0;
+}
+
+bool Hardware::isAnyRxMessagePending() {
+    return HAL_CAN_GetRxFifoFillLevel(&getCanState().handle, CAN_RX_FIFO0) || HAL_CAN_GetRxFifoFillLevel(&getCanState().handle, CAN_RX_FIFO1);
+}
+
+std::optional<CAN::RxMessage> Hardware::receiveCanMessage() {
+    if(HAL_CAN_GetRxFifoFillLevel(&getCanState().handle, CAN_RX_FIFO0)){    // There is message in FIFO0
+        CAN::RxMessage message{};
+        HAL_CAN_GetRxMessage(&getCanState().handle, CAN_RX_FIFO0, &message.header, message.payload.data());
+        return message;
+    }
+    else if(HAL_CAN_GetRxFifoFillLevel(&getCanState().handle, CAN_RX_FIFO1)){   // There is message in FIFO1
+        CAN::RxMessage message{};
+        HAL_CAN_GetRxMessage(&getCanState().handle, CAN_RX_FIFO1, &message.header, message.payload.data());
+        return message;
+    }
+    else{   // No message waiting
+        return std::nullopt;
+    }
+}
+
+void Hardware::sendCanMessage(CAN::TxMessage &message) {
+    [[maybe_unused]] uint32_t usedMailbox;
+    if(isAnyTxMailboxFree()) {
+        HAL_CAN_AddTxMessage(&getCanState().handle, &message.header, message.payload.data(), &usedMailbox);
+    }
+}
+
+CAN::State& Hardware::getCanState() {
+    return canState.at(0);
+}
+
 // Handlers for default HAL UART callbacks
 
 void USART1_IRQHandler() {
@@ -372,7 +450,6 @@ void HAL_SPI_TxCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
         xEventGroupClearBitsFromISR(eventGroup, Uart::State::txBit);
     }
 }
-
 void HAL_SPI_RxCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
     if(auto* eventGroup = Hardware::getSpiState().txRxState) {
         xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
@@ -384,6 +461,7 @@ void HAL_SPI_TxHalfCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
         xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
     }
 }
+
 void HAL_SPI_RxHalfCpltCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
     if(auto* eventGroup = Hardware::getSpiState().txRxState) {
         xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
@@ -394,4 +472,10 @@ void HAL_SPI_ErrorCallback([[maybe_unused]] SPI_HandleTypeDef *hspi){
     if(auto* eventGroup = Hardware::getSpiState().txRxState) {
         xEventGroupClearBitsFromISR(eventGroup, Uart::State::rxBit);
     }
+}
+
+// Handlers for CAN transmission
+
+void CAN1_IRQHandler(){
+    HAL_CAN_IRQHandler(&Hardware::getCanState().handle);
 }
