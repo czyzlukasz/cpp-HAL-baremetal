@@ -3,7 +3,7 @@
 #include <numeric>
 
 AhrsInterface::AhrsInterface() :
-    Task("", 100, 1),
+    Task("", 1000, 1),
     currentParameterIndex(0),
     parametersToRead({
          AhrsMsgId::SENSOR_TEMPERATURE,

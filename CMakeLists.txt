@@ -65,6 +65,8 @@ add_executable(target
 
         # User code
         Src/Tasks/LedDebug.cpp
+        Src/Tasks/AhrsInterface.cpp
+        Src/Tasks/CanInterface.cpp
 
         # FreeRTOS
         FreeRTOS-Kernel/portable/MemMang/heap_4.c
