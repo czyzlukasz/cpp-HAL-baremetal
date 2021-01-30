@@ -106,7 +106,7 @@ void resetHandler() {
     }
 
     // Enable semihosting
-    initialise_monitor_handles();
+//    initialise_monitor_handles();
 
     entryPoint();
 }
