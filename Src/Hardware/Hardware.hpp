@@ -3,6 +3,7 @@
 #include <stm32f1xx_hal.h>
 #include <FreeRTOS.h>
 #include <FreeRTOS-Kernel/include/event_groups.h>
+#include <FreeRTOS-Kernel/include/queue.h>
 #include <map>
 
 // Goal of this abstraction is to isolate main code from hardware-specific code. Ideally, this code could use a stub and
@@ -66,12 +67,11 @@ namespace SPI {
 namespace CAN {
     struct State {
         CAN_HandleTypeDef handle;
+        QueueHandle_t queueHandle;
     };
 
     struct RxMessage {
-        [[nodiscard]] uint32_t getId() const;
-
-        CAN_RxHeaderTypeDef header;
+        uint32_t id;
         std::array<uint8_t, 8> payload;
     };
 
@@ -183,12 +183,10 @@ struct Hardware {
     static void spiReceive(uint8_t data[], size_t numOfBytes);
     static SPI::State& getSpiState();
 
-    static void initializeCan();
+    static void initializeCan(uint32_t acceptedBit);
     static bool isAnyTxMailboxFree();
-    static bool isAnyRxMessagePending();
-    static std::optional<CAN::RxMessage> receiveCanMessage();
     static void sendCanMessage(CAN::TxMessage &message);
-
+    static std::optional<CAN::RxMessage> getCanMessageFromQueue();
     static CAN::State& getCanState();
 
 private:
