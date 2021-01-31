@@ -183,7 +183,7 @@ struct Hardware {
     static void spiReceive(uint8_t data[], size_t numOfBytes);
     static SPI::State& getSpiState();
 
-    static void initializeCan(uint32_t acceptedBit);
+    static void initializeCan(const std::initializer_list <uint32_t> &acceptedAddresses);
     static bool isAnyTxMailboxFree();
     static void sendCanMessage(CAN::TxMessage &message);
     static std::optional<CAN::RxMessage> getCanMessageFromQueue();

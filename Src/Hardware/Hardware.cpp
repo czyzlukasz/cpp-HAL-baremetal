@@ -308,7 +308,7 @@ SPI::State &Hardware::getSpiState() {
     return spiState.at(0);
 }
 
-void Hardware::initializeCan([[maybe_unused]] uint32_t acceptedBit) {
+void Hardware::initializeCan(const std::initializer_list <uint32_t>& acceptedAddresses) {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_CAN1_CLK_ENABLE();
     enableGpio(GPIOA, GPIO_PIN_11, Gpio::Mode::AlternateOD, Gpio::Pull::NoPull); // RX
@@ -344,16 +344,19 @@ void Hardware::initializeCan([[maybe_unused]] uint32_t acceptedBit) {
     filter.FilterScale = CAN_FILTERSCALE_32BIT;
     filter.FilterActivation = CAN_FILTER_ENABLE;
 
-    const uint32_t lowerPortion = (acceptedBit & 0b1111111111111u) << 3u;
-    const uint32_t upperPortion = (acceptedBit & 0b111110000000000000u) >> 13u;
-    filter.FilterMaskIdLow = lowerPortion;
-    filter.FilterMaskIdHigh = upperPortion;
-    filter.FilterIdLow = lowerPortion;
-    filter.FilterIdHigh = upperPortion;
-    filter.FilterBank = 0;
-    filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    HAL_CAN_ConfigFilter(&handle, &filter);
-
+    for(uint32_t idx = 0; idx < acceptedAddresses.size(); ++idx) {
+        // RM0008 p. 665
+        const uint32_t address = *(acceptedAddresses.begin() + idx);
+        const uint32_t lowerPortion = (address & 0b1111111111111u) << 3u;
+        const uint32_t upperPortion = (address & 0b111110000000000000u) >> 13u;
+        filter.FilterMaskIdLow = (0x1FFFFFFFu & 0b1111111111111u) << 3u;;
+        filter.FilterMaskIdHigh = (0x1FFFFFFFu & 0b111110000000000000u) >> 13u;;
+        filter.FilterIdLow = lowerPortion;
+        filter.FilterIdHigh = upperPortion;
+        filter.FilterBank = idx;
+        filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+        HAL_CAN_ConfigFilter(&handle, &filter);
+    }
     HAL_CAN_Start(&handle);
 
     // Create queue for messages
